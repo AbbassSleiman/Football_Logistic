@@ -1,6 +1,9 @@
 ---
 title: "Estimating the Probability that FC Barcelona Win a Game Using a Logistic Model"
+author: "Abbass Sleiman"
 format: pdf
+toc: true
+bibliography: references.bib
 ---
 
 ```{r}
@@ -11,7 +14,6 @@ format: pdf
 # Package loading
 library(tidyverse)
 library(here)
-library(ggplot2)
 library(janitor)
 library(kableExtra)
 library(dplyr)
@@ -27,14 +29,15 @@ win_probability_model <-
 
 # Introduction
 
-In this paper, we seek to implement a logistic regression in order to estimate the probability that FC Barcelona, winner of the 2022-2023 LaLiga, win a game given that a game is Home or Away, the amount of possession they held, who the captain was between one of Sergio Busquets, Marc-André ter Stegen, Sergi Roberto, and Gerard Piqué, as well as what day of the week the game was played.
-
+In this paper, we seek to diverge from Maher's 1982 paper [@Maher], and instead implement a logistic regression in order to estimate the probability that FC Barcelona, winner of the 2022-2023 LaLiga, win a game given that a game is Home or Away, the amount of possession they held, who the captain was between one of Sergio Busquets, Marc-André ter Stegen, Sergi Roberto, and Gerard Piqué, as well as what day of the week the game was played.
 
 # Data
 
-The data that this paper utilizes contains information all 38 games played by FC Barcelona in the 2022-2023 LaLiga season, including the result of the game (win, draw, or loss), what day of the week the game was played, the percentage of possession that FC Barcelona held throughout the game (between 0 and 100), as well as which of the aforementioned captains was in charge of each particular game. 
+The data that this paper utilizes contains information all 38 games played by FC Barcelona in the 2022-2023 LaLiga season, including the result of the game (win, draw, or loss), what day of the week the game was played, the percentage of possession that FC Barcelona held throughout the game (between 0 and 100), as well as which of the aforementioned captains was in charge of each particular game. The data was collected from Sports Reference's logs and then manually converted into an excel file which was then turned into a csv file for the purposes of this paper [@FCB]. 
 
-We mutated the data such that a win registers a value of "1", and a draw or loss register a value of "0" for use in the regression.
+Minimal data cleaning was required except for mutating the data such that a win registers a value of "1", and a draw or loss register a value of "0" for use in the regression.
+
+Note that all the data analysis was done through R [@citeR] with the aid of the following packages: tidyverse [@citetidyverse], here [@citehere], dplyr [@citedplyr], tibble [@citetibble], janitor [@citejanitor], knitr [@citeknitr], kableExtra [@kableExtra], broom [@broom], rstanarm [@rstanarm], and marginaleffects [@marginaleffects].
 
 ```{r}
 #| include: false
@@ -116,3 +119,7 @@ head(win_probability_predictions, 6) |>
     col.names = c("Game", "Estimated Probability", "Result", "Day", "Venue", "Possession", "Captain")
   )
 ```
+
+\newpage
+
+# References
