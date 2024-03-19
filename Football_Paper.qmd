@@ -3,7 +3,118 @@ title: "Estimating the Probability that FC Barcelona Win a Game Using a Logistic
 format: pdf
 ---
 
+```{r}
+#| include: false
+#| warning: false
+#| message: false
+
+# Package loading
+library(tidyverse)
+library(here)
+library(ggplot2)
+library(janitor)
+library(kableExtra)
+library(dplyr)
+
+# Read data
+raw_football_data <- read_csv(here("Barcelona Games.csv"))
+```
+
 # Introduction
 
 In this paper, we seek to implement a logistic regression in order to estimate the probability that FC Barcelona, winner of the 2022-2023 LaLiga, win a game given that a game is Home or Away, the amount of possession they held, who the captain was between one of Sergio Busquets, Marc-André ter Stegen, Sergi Roberto, and Gerard Piqué, as well as what day of the week the game was played.
 
+
+# Data
+
+The data that this paper utilizes contains information all 38 games played by FC Barcelona in the 2022-2023 LaLiga season, including the result of the game (win, draw, or loss), what day of the week the game was played, the percentage of possession that FC Barcelona held throughout the game (between 0 and 100), as well as which of the aforementioned captains was in charge of each particular game. 
+
+We mutated the data such that a win registers a value of "1", and a draw or loss register a value of "0" for use in the regression.
+
+```{r}
+#| include: false
+#| warning: false
+#| message: false
+
+library(tidyverse)
+library(janitor)
+
+raw_football_data <- clean_names(raw_football_data)
+
+cleaned_football_data <- raw_football_data |>
+  mutate(
+    result = ifelse(result == "W", 1, 0)
+  )
+```
+
+# Model
+
+The particular model that this paper will utilize is logistic. The primary reason why I have decided to make use of a logistic model in particular, is due to the binary nature of the outcome variable that we are interested in - whether FC Barcelona will win or lose. Though there is the possibility of a draw, as this paper is primarily concerned with whether or not FC Barcelona wins, we treat a draw as a loss in this regard.
+
+The independent variables which we are interested in examining with regards to their effect on the probability that FC Barcelona wins or loses a game are as follows: Day (one of Saturday, Sunday, Monday, Tuesday, Wednesday, or Thursday), Venue (Home or Away), Possession (integer value between 0-100), and one of the aforementioned captains.
+
+Thus, the model is as follows:
+
+$$
+\begin{aligned}
+y_i|\pi_i & \sim \mbox{Bern}(\pi_i) \\
+\mbox{logit}(\pi_i) & = \beta_0 + \beta_1 x_{1i} + \beta_2 x_{2i} + \beta_3 x_{3i} + \beta_4 x_{4i}
+\end{aligned}
+$$
+Here, $$y_i = 1$$ denotes a win, and each of the independent variables from 1 to 4 represent the day, venue, possession, and the captain respectively. 
+
+# Results and Discussion
+
+After running our regression, 
+
+```{r}
+#| include: false
+#| warning: false
+#| message: false
+
+library(tidyverse)
+library(marginaleffects)
+library(dplyr)
+
+win_probability_model <-
+  glm(
+    result ~ day + venue + poss + captain,
+    data = cleaned_football_data,
+    family = "binomial"
+  )
+
+win_probability_predictions <- 
+  predictions(win_probability_model) |>
+  as_tibble()
+
+win_probability_predictions <- win_probability_predictions |>
+  select(rowid, estimate, result, day, venue, poss, captain)
+```
+
+
+```{r}
+#| label: tbl-coefficients
+#| tbl-cap: Coefficient values derived from the logistic regression
+#| echo: false
+
+modelsummary::modelsummary(
+  list(
+    "Model"
+  )
+)
+
+```
+
+
+```{r}
+#| label: tbl-predictions
+#| tbl-cap: Predicted likelihood of FC Barcelona winning a game compared with the actual result.
+#| echo: false
+
+library(kableExtra)
+
+head(win_probability_predictions, 6) |>
+  kable(
+    col.names = c("Game", "Estimated Probability", "Result", "Day", "Venue", "Possession", "Captain")
+  )
+```
