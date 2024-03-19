@@ -15,9 +15,14 @@ library(ggplot2)
 library(janitor)
 library(kableExtra)
 library(dplyr)
+library(rstanarm)
 
 # Read data
 raw_football_data <- read_csv(here("Barcelona Games.csv"))
+
+# Read model
+win_probability_model <-
+  readRDS(here(file = "win_probability_model.rds"))
 ```
 
 # Introduction
@@ -65,7 +70,7 @@ Here, $$y_i = 1$$ denotes a win, and each of the independent variables from 1 to
 
 # Results and Discussion
 
-After running our regression, 
+After running our regression, we get the values for the coefficients of each of our independent variables as showcased in @tbl-coefficients. We also compare the predictions made by the model for the likelihood that FC Barcelona wins a game, compared with the actual result for the first 6 games in @tbl-predictions. It is clear that as it stands, the model is quite ineffective in its predictive power, judging by the incredibly large standard errors and p-values present in @tbl-coefficients. This is likely due to the small number of observations (only 38), and even smaller number of observations when categorizing each observation by day, captain, and possession.
 
 ```{r}
 #| include: false
@@ -75,13 +80,7 @@ After running our regression,
 library(tidyverse)
 library(marginaleffects)
 library(dplyr)
-
-win_probability_model <-
-  glm(
-    result ~ day + venue + poss + captain,
-    data = cleaned_football_data,
-    family = "binomial"
-  )
+library(rstanarm)
 
 win_probability_predictions <- 
   predictions(win_probability_model) |>
@@ -91,25 +90,24 @@ win_probability_predictions <- win_probability_predictions |>
   select(rowid, estimate, result, day, venue, poss, captain)
 ```
 
-
 ```{r}
 #| label: tbl-coefficients
-#| tbl-cap: Coefficient values derived from the logistic regression
+#| tbl-cap: Coefficients for each of the independent variables calculated from running the logistic regression.
 #| echo: false
+#| tbl-pos: H
 
-modelsummary::modelsummary(
-  list(
-    "Model"
-  )
-)
+library(broom)
 
+tidy_model <- tidy(win_probability_model)
+
+kable(tidy_model)
 ```
-
 
 ```{r}
 #| label: tbl-predictions
 #| tbl-cap: Predicted likelihood of FC Barcelona winning a game compared with the actual result.
 #| echo: false
+#| tbl-pos: H
 
 library(kableExtra)
 
